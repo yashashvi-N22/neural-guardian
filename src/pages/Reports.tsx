@@ -14,11 +14,11 @@ import {
 } from "recharts";
 
 const complianceData = [
-  { category: "Bias Detection", score: 92, max: 100 },
-  { category: "Drift Monitoring", score: 88, max: 100 },
-  { category: "Explainability", score: 76, max: 100 },
-  { category: "Data Privacy", score: 95, max: 100 },
-  { category: "Model Governance", score: 85, max: 100 },
+  { category: "Gender Bias", score: 72, max: 100 },
+  { category: "Age Bias", score: 68, max: 100 },
+  { category: "Ethnicity Bias", score: 58, max: 100 },
+  { category: "Calibration", score: 95, max: 100 },
+  { category: "Privacy", score: 92, max: 100 },
 ];
 
 const radarData = [
@@ -31,11 +31,11 @@ const radarData = [
 ];
 
 const auditHistory = [
-  { id: "AUD-2025-001", date: "2025-02-28", status: "passed", score: 94, framework: "EU AI Act" },
-  { id: "AUD-2025-002", date: "2025-02-15", status: "warning", score: 78, framework: "NIST AI RMF" },
-  { id: "AUD-2025-003", date: "2025-01-30", status: "passed", score: 91, framework: "EU AI Act" },
-  { id: "AUD-2025-004", date: "2025-01-15", status: "failed", score: 62, framework: "IEEE Ethics" },
-  { id: "AUD-2025-005", date: "2024-12-30", status: "passed", score: 89, framework: "EU AI Act" },
+  { id: "AUD-2025-001", date: "2025-02-28", status: "passed", score: 94, framework: "EU AI Act (Hiring)" },
+  { id: "AUD-2025-002", date: "2025-02-15", status: "warning", score: 78, framework: "EEOC Compliance" },
+  { id: "AUD-2025-003", date: "2025-01-30", status: "passed", score: 91, framework: "EU AI Act (Hiring)" },
+  { id: "AUD-2025-004", date: "2025-01-15", status: "failed", score: 62, framework: "NYC Local Law 144" },
+  { id: "AUD-2025-005", date: "2024-12-30", status: "passed", score: 89, framework: "NIST AI RMF" },
 ];
 
 const modelBreakdown = [
@@ -77,44 +77,62 @@ const Reports = () => {
       setGenerating(false);
       // Create a mock PDF download
       const reportContent = `
-AI GUARDIAN - COMPLIANCE AUDIT REPORT
-=====================================
+AI GUARDIAN - HIRING SYSTEMS ETHICAL AUDIT REPORT
+===================================================
 Generated: ${new Date().toISOString()}
 Organization: ${user?.organization || "NeuralGuardians"}
-Framework: EU AI Act
+Domain: AI-Powered Hiring Systems
+Framework: EU AI Act (High-Risk AI Systems)
 
 EXECUTIVE SUMMARY
 ------------------
 Overall Compliance Score: 87/100
-Models Monitored: 5
-Active Risk Alerts: 2
-Predictions Analyzed: 12,400+
+Hiring Models Audited: 5
+Active Bias Alerts: 2
+Candidates Evaluated: 12,400+
 
-BIAS DETECTION SUMMARY
+BIAS DETECTION SUMMARY (Hiring Pipeline)
+------------------------------------------
+Demographic Parity: 0.72 (Gender), 0.68 (Age), 0.58 (Ethnicity)
+Equal Opportunity: 0.81 (Gender), 0.75 (Age), 0.62 (Ethnicity)
+Disparate Impact: 0.78 (Gender), 0.71 (Age), 0.60 (Ethnicity)
+
+FLAGGED BIAS INSTANCES
 -----------------------
-Demographic Parity: 0.82 (Gender), 0.75 (Age), 0.68 (Ethnicity)
-Equal Opportunity: 0.91 (Gender), 0.85 (Age), 0.72 (Ethnicity)
-Disparate Impact: 0.88 (Gender), 0.79 (Age), 0.71 (Ethnicity)
+1. CRITICAL: Candidate Ranker v1.8 — Female applicants rejected 23% more often (DP=0.58)
+2. CRITICAL: Candidate Ranker v1.8 — Ethnicity-associated names scored 18% lower (EO=0.55)
+3. WARNING: Interview Scorer v2.1 — Candidates 45+ receive lower sentiment scores (DI=0.71)
+4. WARNING: Resume Screener v3.2 — University prestige acts as socioeconomic proxy
 
-DRIFT MONITORING
------------------
-Current PSI: 0.062 (STABLE)
-Max PSI (24h): 0.089
-Drift Events: 0
-
-EXPLAINABILITY (SHAP)
+CALIBRATION ANALYSIS
 ---------------------
-Top Features: Income (+0.35), Credit History (+0.28), Employment (+0.22)
-Flagged Features: Gender (-0.18), Age (-0.15)
+ECE Score: 0.032 (GOOD)
+Brier Score: 0.041 (GOOD)
+Average Confidence Gap: 3.2%
+
+PRIVACY PRESERVATION
+---------------------
+PII Masking: ACTIVE
+Differential Privacy: ε=1.2
+Data Minimization: 12 protected attributes excluded
+Consent Verification: PARTIAL (action needed)
+Privacy Score: 92/100
+
+EXPLAINABILITY (SHAP — Resume Screener v3.2)
+----------------------------------------------
+Legitimate Factors: Years Experience (+0.38), Skills Match (+0.32), Education (+0.25)
+Flagged Bias Sources: Name Ethnicity Signal (-0.28), Gender Indicators (-0.22)
 
 RECOMMENDATIONS
 ----------------
-1. Review ethnicity bias in Resume Screener v1.8
-2. Monitor Loan Approval v2.1 PSI trending upward
-3. Increase SHAP coverage for Insurance Pricing v4.0
+1. [HIGH] Retrain Candidate Ranker with balanced dataset (Est. 3-5 days)
+2. [HIGH] Remove name-based features from screening pipeline (Est. 1 day)
+3. [MEDIUM] Add age-debiasing layer to Interview Scorer (Est. 2-3 days)
+4. [MEDIUM] Replace university prestige with skills-based scoring (Est. 1 week)
+5. [LOW] Implement consent tracking for all AI screening steps (Est. 2-3 days)
 
 Report ID: RPT-${Date.now()}
-NeuralGuardians · BLUEBIT 4.0 · PS9
+NeuralGuardians · AI Guardian Platform
       `;
       const blob = new Blob([reportContent], { type: "text/plain" });
       const url = URL.createObjectURL(blob);
@@ -136,8 +154,8 @@ NeuralGuardians · BLUEBIT 4.0 · PS9
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div>
-              <h2 className="text-xl font-bold text-foreground">Compliance Reports</h2>
-              <p className="text-sm text-muted-foreground">Audit-ready governance reports & analytics</p>
+              <h2 className="text-xl font-bold text-foreground">Hiring Systems Audit Reports</h2>
+              <p className="text-sm text-muted-foreground">Bias audits, fairness scorecards & compliance analytics</p>
             </div>
           </div>
           <Button onClick={generateReport} disabled={generating} className="glow-primary">
@@ -157,7 +175,7 @@ NeuralGuardians · BLUEBIT 4.0 · PS9
           {[
             { label: "Overall Score", value: "87%", icon: Shield, color: "text-primary" },
             { label: "Audits Passed", value: "3/5", icon: CheckCircle, color: "text-success" },
-            { label: "Risk Findings", value: "4", icon: AlertTriangle, color: "text-warning" },
+            { label: "Bias Findings", value: "4", icon: AlertTriangle, color: "text-warning" },
             { label: "Last Audit", value: "Feb 28", icon: Calendar, color: "text-accent" },
           ].map((stat, i) => {
             const Icon = stat.icon;
@@ -304,3 +322,4 @@ NeuralGuardians · BLUEBIT 4.0 · PS9
 };
 
 export default Reports;
+
