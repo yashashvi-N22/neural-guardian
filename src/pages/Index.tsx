@@ -6,6 +6,10 @@ import DriftMonitor from "@/components/DriftMonitor";
 import ExplainabilityPanel from "@/components/ExplainabilityPanel";
 import ModelRegistry from "@/components/ModelRegistry";
 import AlertsFeed from "@/components/AlertsFeed";
+import CalibrationChart from "@/components/CalibrationChart";
+import PrivacyPanel from "@/components/PrivacyPanel";
+import BiasInstances from "@/components/BiasInstances";
+import RecommendationsPanel from "@/components/RecommendationsPanel";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
@@ -33,15 +37,15 @@ const Index = () => {
                 Welcome back, <span className="text-primary">{user?.name?.split(" ")[0]}</span>
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
-                <span className="font-mono text-foreground">5</span> models monitored · 
-                <span className="font-mono text-warning"> 2</span> alerts pending · 
-                <span className="font-mono text-success"> 94%</span> compliance
+                <span className="font-mono text-foreground">5</span> hiring models audited · 
+                <span className="font-mono text-warning"> 2</span> bias alerts · 
+                <span className="font-mono text-success"> 94%</span> fairness compliance
               </p>
             </div>
             <div className="hidden md:flex items-center gap-2">
               <div className="text-right">
-                <p className="text-[10px] font-mono text-muted-foreground uppercase">Organization</p>
-                <p className="text-sm font-medium text-foreground">{user?.organization}</p>
+                <p className="text-[10px] font-mono text-muted-foreground uppercase">Domain</p>
+                <p className="text-sm font-medium text-foreground">Hiring Systems</p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
                 <Shield className="w-5 h-5 text-primary" />
@@ -70,6 +74,18 @@ const Index = () => {
           <div className="lg:col-span-7">
             <ModelRegistry />
           </div>
+        </div>
+
+        {/* Calibration & Privacy */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <CalibrationChart />
+          <PrivacyPanel />
+        </div>
+
+        {/* Bias Instances & Recommendations */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <BiasInstances />
+          <RecommendationsPanel />
         </div>
 
         <AlertsFeed />
