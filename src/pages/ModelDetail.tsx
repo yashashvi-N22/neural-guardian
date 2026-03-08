@@ -1,101 +1,53 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Shield, TrendingUp, Scale, Eye, AlertTriangle, CheckCircle, Activity } from "lucide-react";
+import {
+  FileText, Download, ArrowLeft, CheckCircle, AlertTriangle, XCircle,
+  Calendar, BarChart3, Shield, TrendingUp, Scale
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, ReferenceLine, Cell, AreaChart, Area
+  PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from "recharts";
 
-const modelData: Record<string, any> = {
-  "credit-scoring-v3.2": {
-    name: "Credit Scoring v3.2",
-    type: "Classification",
-    status: "safe",
-    score: 28,
-    description: "Binary classifier for consumer credit risk assessment",
-    predictions: "4.2K",
-    uptime: "99.8%",
-    bias: {
-      gender: { dp: 0.82, eo: 0.91, di: 0.88 },
-      age: { dp: 0.90, eo: 0.93, di: 0.95 },
-      ethnicity: { dp: 0.85, eo: 0.88, di: 0.90 },
-    },
-    shapData: [
-      { feature: "Income", impact: 0.35 },
-      { feature: "Credit History", impact: 0.28 },
-      { feature: "Employment", impact: 0.22 },
-      { feature: "Education", impact: 0.12 },
-      { feature: "Location", impact: -0.08 },
-      { feature: "Age", impact: -0.15 },
-      { feature: "Gender", impact: -0.05 },
-    ],
-    driftHistory: Array.from({ length: 30 }, (_, i) => ({
-      day: i + 1,
-      psi: Math.max(0, 0.03 + Math.sin(i * 0.3) * 0.015 + Math.random() * 0.01),
-    })),
-  },
-  "loan-approval-v2.1": {
-    name: "Loan Approval v2.1",
-    type: "Binary Classifier",
-    status: "monitor",
-    score: 48,
-    description: "Automated loan approval decision engine with fairness constraints",
-    predictions: "3.8K",
-    uptime: "99.5%",
-    bias: {
-      gender: { dp: 0.75, eo: 0.82, di: 0.80 },
-      age: { dp: 0.70, eo: 0.78, di: 0.74 },
-      ethnicity: { dp: 0.65, eo: 0.70, di: 0.68 },
-    },
-    shapData: [
-      { feature: "Annual Income", impact: 0.42 },
-      { feature: "Debt-to-Income", impact: 0.31 },
-      { feature: "Credit Score", impact: 0.25 },
-      { feature: "Employment Years", impact: 0.18 },
-      { feature: "Age", impact: -0.20 },
-      { feature: "Zip Code", impact: -0.12 },
-      { feature: "Gender", impact: -0.15 },
-    ],
-    driftHistory: Array.from({ length: 30 }, (_, i) => ({
-      day: i + 1,
-      psi: Math.max(0, 0.05 + Math.sin(i * 0.25) * 0.025 + Math.random() * 0.015),
-    })),
-  },
-  "resume-screener-v1.8": {
-    name: "Resume Screener v1.8",
-    type: "NLP Classifier",
-    status: "critical",
-    score: 72,
-    description: "NLP-based resume screening for job applications",
-    predictions: "1.9K",
-    uptime: "98.2%",
-    bias: {
-      gender: { dp: 0.58, eo: 0.62, di: 0.60 },
-      age: { dp: 0.65, eo: 0.68, di: 0.66 },
-      ethnicity: { dp: 0.52, eo: 0.55, di: 0.54 },
-    },
-    shapData: [
-      { feature: "Years Experience", impact: 0.38 },
-      { feature: "Education Level", impact: 0.30 },
-      { feature: "Skills Match", impact: 0.25 },
-      { feature: "Name Features", impact: -0.28 },
-      { feature: "University Prestige", impact: -0.22 },
-      { feature: "Location", impact: -0.15 },
-      { feature: "Gender Indicators", impact: -0.32 },
-    ],
-    driftHistory: Array.from({ length: 30 }, (_, i) => ({
-      day: i + 1,
-      psi: Math.max(0, 0.06 + Math.sin(i * 0.35) * 0.04 + Math.random() * 0.02),
-    })),
-  },
-};
+const complianceData = [
+  { category: "Gender Bias", score: 72, max: 100 },
+  { category: "Age Bias", score: 68, max: 100 },
+  { category: "Ethnicity Bias", score: 58, max: 100 },
+  { category: "Calibration", score: 95, max: 100 },
+  { category: "Privacy", score: 92, max: 100 },
+];
+
+const radarData = [
+  { metric: "Fairness", value: 88 },
+  { metric: "Transparency", value: 76 },
+  { metric: "Accountability", value: 92 },
+  { metric: "Privacy", value: 95 },
+  { metric: "Safety", value: 84 },
+  { metric: "Robustness", value: 79 },
+];
+
+const auditHistory = [
+  { id: "AUD-2025-001", date: "2025-02-28", status: "passed", score: 94, framework: "EU AI Act (Hiring)" },
+  { id: "AUD-2025-002", date: "2025-02-15", status: "warning", score: 78, framework: "EEOC Compliance" },
+  { id: "AUD-2025-003", date: "2025-01-30", status: "passed", score: 91, framework: "EU AI Act (Hiring)" },
+  { id: "AUD-2025-004", date: "2025-01-15", status: "failed", score: 62, framework: "NYC Local Law 144" },
+  { id: "AUD-2025-005", date: "2024-12-30", status: "passed", score: 89, framework: "NIST AI RMF" },
+];
+
+const modelBreakdown = [
+  { name: "Safe", value: 3, fill: "hsl(160, 100%, 45%)" },
+  { name: "Monitor", value: 1, fill: "hsl(45, 100%, 50%)" },
+  { name: "Critical", value: 1, fill: "hsl(0, 80%, 55%)" },
+];
 
 const statusConfig = {
-  safe: { color: "text-success", bg: "bg-success/10", border: "border-success/20", glow: "glow-primary" },
-  monitor: { color: "text-warning", bg: "bg-warning/10", border: "border-warning/20", glow: "glow-warning" },
-  critical: { color: "text-destructive", bg: "bg-destructive/10", border: "border-destructive/20", glow: "glow-destructive" },
+  passed: { icon: CheckCircle, color: "text-success", bg: "bg-success/10", border: "border-success/20" },
+  warning: { icon: AlertTriangle, color: "text-warning", bg: "bg-warning/10", border: "border-warning/20" },
+  failed: { icon: XCircle, color: "text-destructive", bg: "bg-destructive/10", border: "border-destructive/20" },
 };
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -105,7 +57,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <p className="font-semibold text-foreground mb-1">{label}</p>
         {payload.map((p: any, i: number) => (
           <p key={i} className="text-muted-foreground">
-            {p.name}: <span className="font-mono text-foreground">{typeof p.value === "number" ? p.value.toFixed(3) : p.value}</span>
+            Score: <span className="font-mono text-foreground">{p.value}%</span>
           </p>
         ))}
       </div>
@@ -114,20 +66,83 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-const ModelDetail = () => {
-  const { modelId } = useParams();
+const Reports = () => {
   const navigate = useNavigate();
-  const model = modelData[modelId || ""] || modelData["credit-scoring-v3.2"];
-  const config = statusConfig[model.status as keyof typeof statusConfig];
+  const { user } = useAuth();
+  const [generating, setGenerating] = useState(false);
 
-  const biasChartData = Object.entries(model.bias).map(([group, metrics]: [string, any]) => ({
-    name: group.charAt(0).toUpperCase() + group.slice(1),
-    dp: metrics.dp,
-    eo: metrics.eo,
-    di: metrics.di,
-  }));
+  const generateReport = () => {
+    setGenerating(true);
+    setTimeout(() => {
+      setGenerating(false);
+      // Create a mock PDF download
+      const reportContent = `
+AI GUARDIAN - HIRING SYSTEMS ETHICAL AUDIT REPORT
+===================================================
+Generated: ${new Date().toISOString()}
+Organization: ${user?.organization || "NeuralGuardians"}
+Domain: AI-Powered Hiring Systems
+Framework: EU AI Act (High-Risk AI Systems)
 
-  const shapSorted = [...model.shapData].sort((a: any, b: any) => Math.abs(b.impact) - Math.abs(a.impact));
+EXECUTIVE SUMMARY
+------------------
+Overall Compliance Score: 87/100
+Hiring Models Audited: 5
+Active Bias Alerts: 2
+Candidates Evaluated: 12,400+
+
+BIAS DETECTION SUMMARY (Hiring Pipeline)
+------------------------------------------
+Demographic Parity: 0.72 (Gender), 0.68 (Age), 0.58 (Ethnicity)
+Equal Opportunity: 0.81 (Gender), 0.75 (Age), 0.62 (Ethnicity)
+Disparate Impact: 0.78 (Gender), 0.71 (Age), 0.60 (Ethnicity)
+
+FLAGGED BIAS INSTANCES
+-----------------------
+1. CRITICAL: Candidate Ranker v1.8 — Female applicants rejected 23% more often (DP=0.58)
+2. CRITICAL: Candidate Ranker v1.8 — Ethnicity-associated names scored 18% lower (EO=0.55)
+3. WARNING: Interview Scorer v2.1 — Candidates 45+ receive lower sentiment scores (DI=0.71)
+4. WARNING: Resume Screener v3.2 — University prestige acts as socioeconomic proxy
+
+CALIBRATION ANALYSIS
+---------------------
+ECE Score: 0.032 (GOOD)
+Brier Score: 0.041 (GOOD)
+Average Confidence Gap: 3.2%
+
+PRIVACY PRESERVATION
+---------------------
+PII Masking: ACTIVE
+Differential Privacy: ε=1.2
+Data Minimization: 12 protected attributes excluded
+Consent Verification: PARTIAL (action needed)
+Privacy Score: 92/100
+
+EXPLAINABILITY (SHAP — Resume Screener v3.2)
+----------------------------------------------
+Legitimate Factors: Years Experience (+0.38), Skills Match (+0.32), Education (+0.25)
+Flagged Bias Sources: Name Ethnicity Signal (-0.28), Gender Indicators (-0.22)
+
+RECOMMENDATIONS
+----------------
+1. [HIGH] Retrain Candidate Ranker with balanced dataset (Est. 3-5 days)
+2. [HIGH] Remove name-based features from screening pipeline (Est. 1 day)
+3. [MEDIUM] Add age-debiasing layer to Interview Scorer (Est. 2-3 days)
+4. [MEDIUM] Replace university prestige with skills-based scoring (Est. 1 week)
+5. [LOW] Implement consent tracking for all AI screening steps (Est. 2-3 days)
+
+Report ID: RPT-${Date.now()}
+NeuralGuardians · AI Guardian Platform
+      `;
+      const blob = new Blob([reportContent], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `AI_Guardian_Audit_Report_${new Date().toISOString().split("T")[0]}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }, 2000);
+  };
 
   return (
     <div className="min-h-screen bg-background grid-pattern">
@@ -139,22 +154,29 @@ const ModelDetail = () => {
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div>
-              <h2 className="text-xl font-bold text-foreground">{model.name}</h2>
-              <p className="text-sm text-muted-foreground">{model.description}</p>
+              <h2 className="text-xl font-bold text-foreground">Hiring Systems Audit Reports</h2>
+              <p className="text-sm text-muted-foreground">Bias audits, fairness scorecards & compliance analytics</p>
             </div>
           </div>
-          <span className={`text-xs font-mono px-3 py-1.5 rounded-full ${config.bg} ${config.color} border ${config.border}`}>
-            {model.status.toUpperCase()} · Score: {model.score}
-          </span>
+          <Button onClick={generateReport} disabled={generating} className="glow-primary">
+            {generating ? (
+              <span className="animate-pulse">Generating...</span>
+            ) : (
+              <>
+                <Download className="w-4 h-4" />
+                Export Report
+              </>
+            )}
+          </Button>
         </div>
 
-        {/* Quick stats */}
+        {/* Top metrics */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { label: "Risk Score", value: model.score, icon: Shield, color: config.color },
-            { label: "Predictions", value: model.predictions, icon: Activity, color: "text-accent" },
-            { label: "Uptime", value: model.uptime, icon: CheckCircle, color: "text-success" },
-            { label: "Model Type", value: model.type, icon: TrendingUp, color: "text-muted-foreground" },
+            { label: "Overall Score", value: "87%", icon: Shield, color: "text-primary" },
+            { label: "Audits Passed", value: "3/5", icon: CheckCircle, color: "text-success" },
+            { label: "Bias Findings", value: "4", icon: AlertTriangle, color: "text-warning" },
+            { label: "Last Audit", value: "Feb 28", icon: Calendar, color: "text-accent" },
           ].map((stat, i) => {
             const Icon = stat.icon;
             return (
@@ -163,95 +185,140 @@ const ModelDetail = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 * i }}
-                className="glass rounded-xl p-4"
+                className="glass rounded-xl p-4 flex items-center gap-3"
               >
-                <div className="flex items-center gap-2 mb-1">
-                  <Icon className={`w-4 h-4 ${stat.color}`} />
-                  <span className="text-[10px] text-muted-foreground uppercase">{stat.label}</span>
+                <div className="p-2 rounded-lg bg-secondary">
+                  <Icon className={`w-5 h-5 ${stat.color}`} />
                 </div>
-                <p className="text-2xl font-bold font-mono text-foreground">{stat.value}</p>
+                <div>
+                  <p className="text-2xl font-bold font-mono text-foreground">{stat.value}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{stat.label}</p>
+                </div>
               </motion.div>
             );
           })}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Bias by group */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass rounded-xl p-6">
+          {/* Compliance by category */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="glass rounded-xl p-6"
+          >
             <div className="flex items-center gap-2 mb-6">
-              <Scale className="w-5 h-5 text-accent" />
-              <h3 className="text-sm font-semibold text-foreground tracking-wide uppercase">Bias Analysis by Group</h3>
+              <BarChart3 className="w-5 h-5 text-primary" />
+              <h3 className="text-sm font-semibold text-foreground tracking-wide uppercase">Compliance by Category</h3>
             </div>
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={biasChartData} barGap={2} barSize={14}>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={complianceData} barSize={20}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 15% 18%)" />
-                <XAxis dataKey="name" tick={{ fill: "hsl(215 15% 55%)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis domain={[0, 1]} tick={{ fill: "hsl(215 15% 55%)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="category" tick={{ fill: "hsl(215 15% 55%)", fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis domain={[0, 100]} tick={{ fill: "hsl(215 15% 55%)", fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} />
-                <ReferenceLine y={0.8} stroke="hsl(0, 80%, 55%)" strokeDasharray="5 5" />
-                <Bar dataKey="dp" name="Demographic Parity" fill="hsl(160, 100%, 45%)" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="eo" name="Equal Opportunity" fill="hsl(200, 90%, 50%)" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="di" name="Disparate Impact" fill="hsl(45, 100%, 50%)" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="score" fill="hsl(160, 100%, 45%)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-            <div className="flex flex-wrap gap-3 mt-3 justify-center">
-              {[
-                { label: "Dem. Parity", color: "bg-primary" },
-                { label: "Equal Opp.", color: "bg-accent" },
-                { label: "Disp. Impact", color: "bg-warning" },
-              ].map((l) => (
-                <div key={l.label} className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                  <div className={`w-2 h-2 rounded-sm ${l.color}`} />
-                  {l.label}
+          </motion.div>
+
+          {/* Radar */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="glass rounded-xl p-6"
+          >
+            <div className="flex items-center gap-2 mb-6">
+              <Scale className="w-5 h-5 text-accent" />
+              <h3 className="text-sm font-semibold text-foreground tracking-wide uppercase">Ethical Dimensions</h3>
+            </div>
+            <ResponsiveContainer width="100%" height={260}>
+              <RadarChart data={radarData}>
+                <PolarGrid stroke="hsl(220 15% 18%)" />
+                <PolarAngleAxis dataKey="metric" tick={{ fill: "hsl(215 15% 55%)", fontSize: 11 }} />
+                <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
+                <Radar dataKey="value" stroke="hsl(160, 100%, 45%)" fill="hsl(160, 100%, 45%)" fillOpacity={0.2} strokeWidth={2} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </motion.div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Model distribution pie chart */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="glass rounded-xl p-6"
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUp className="w-5 h-5 text-warning" />
+              <h3 className="text-sm font-semibold text-foreground tracking-wide uppercase">Model Risk Distribution</h3>
+            </div>
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie data={modelBreakdown} dataKey="value" cx="50%" cy="50%" innerRadius={50} outerRadius={80} strokeWidth={0}>
+                  {modelBreakdown.map((entry, i) => (
+                    <Cell key={i} fill={entry.fill} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex justify-center gap-4 mt-2">
+              {modelBreakdown.map((m) => (
+                <div key={m.name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: m.fill }} />
+                  {m.name} ({m.value})
                 </div>
               ))}
             </div>
           </motion.div>
 
-          {/* SHAP */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="glass rounded-xl p-6">
-            <div className="flex items-center gap-2 mb-6">
-              <Eye className="w-5 h-5 text-primary" />
-              <h3 className="text-sm font-semibold text-foreground tracking-wide uppercase">SHAP Feature Impact</h3>
+          {/* Audit history */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="lg:col-span-2 glass rounded-xl p-6"
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <FileText className="w-5 h-5 text-primary" />
+              <h3 className="text-sm font-semibold text-foreground tracking-wide uppercase">Audit History</h3>
             </div>
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={shapSorted} layout="vertical" barSize={14}>
-                <XAxis type="number" tick={{ fill: "hsl(215 15% 55%)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis dataKey="feature" type="category" tick={{ fill: "hsl(215 15% 55%)", fontSize: 10 }} axisLine={false} tickLine={false} width={110} />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="impact" name="SHAP Value" radius={[0, 4, 4, 0]}>
-                  {shapSorted.map((entry: any, i: number) => (
-                    <Cell key={i} fill={entry.impact >= 0 ? "hsl(160, 100%, 45%)" : "hsl(0, 80%, 55%)"} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="space-y-2">
+              {auditHistory.map((audit) => {
+                const config = statusConfig[audit.status as keyof typeof statusConfig];
+                const Icon = config.icon;
+                return (
+                  <div
+                    key={audit.id}
+                    className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`p-1.5 rounded-md ${config.bg} border ${config.border}`}>
+                        <Icon className={`w-3.5 h-3.5 ${config.color}`} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-mono text-foreground">{audit.id}</p>
+                        <p className="text-[10px] text-muted-foreground">{audit.framework} · {audit.date}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-mono font-bold text-foreground">{audit.score}%</span>
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${config.bg} ${config.color} border ${config.border}`}>
+                        {audit.status.toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </motion.div>
         </div>
-
-        {/* Drift history */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass rounded-xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-accent" />
-              <h3 className="text-sm font-semibold text-foreground tracking-wide uppercase">30-Day PSI Drift History</h3>
-            </div>
-            <span className="text-[10px] font-mono text-muted-foreground">Population Stability Index</span>
-          </div>
-          <ResponsiveContainer width="100%" height={240}>
-            <AreaChart data={model.driftHistory}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 15% 18%)" />
-              <XAxis dataKey="day" tick={{ fill: "hsl(215 15% 55%)", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "hsl(215 15% 55%)", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <Tooltip content={<CustomTooltip />} />
-              <ReferenceLine y={0.1} stroke="hsl(0, 80%, 55%)" strokeDasharray="5 5" label={{ value: "Threshold", fill: "hsl(0, 80%, 55%)", fontSize: 10 }} />
-              <Area type="monotone" dataKey="psi" name="PSI" stroke="hsl(160, 100%, 45%)" fill="hsl(160, 100%, 45%)" fillOpacity={0.1} strokeWidth={2} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </motion.div>
       </main>
     </div>
   );
 };
 
-export default ModelDetail;
+export default Reports;
